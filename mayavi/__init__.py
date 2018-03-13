@@ -11,6 +11,7 @@ __requires__ = [
     'apptools',
     'traits',
     'traitsui',
+    'vtk',
 ]
 
 __extras_require__ = {
