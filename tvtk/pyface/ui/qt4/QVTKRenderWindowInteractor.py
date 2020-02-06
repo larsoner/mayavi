@@ -284,7 +284,7 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
         # before its parent thus allowing cleanup of VTK elements.
         self._hidden = QWidget(self)
         self._hidden.hide()
-        self._hidden.destroyed.connect(self.Finalize)
+        self._hidden.destroyed.connect(self._destroyed)
 
     def __getattr__(self, attr):
         """Makes the object behave like a vtkGenericRenderWindowInteractor"""
@@ -323,6 +323,14 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
 
             WId = pythonapi.PyCapsule_GetPointer(WId, name)
         return str(int(WId))
+
+    def _no_paint(self, ev):
+        pass
+
+    def _destroyed(self):
+        # ensure no paint events get called again
+        self.paintEvent = self._no_paint
+        self.Finalize()
 
     def Finalize(self):
         '''
