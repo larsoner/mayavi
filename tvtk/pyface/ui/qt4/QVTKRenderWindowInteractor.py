@@ -336,6 +336,7 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
         if not self._been_destroyed:
             self._been_destroyed = True
             self._RenderWindow.Finalize()
+            self._Iren.SetRenderWindow(None)
 
     def CreateTimer(self, obj, evt):
         self._Timer.start(10)
