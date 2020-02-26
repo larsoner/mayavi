@@ -285,6 +285,7 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
         self._hidden = QWidget(self)
         self._hidden.hide()
         self._hidden.destroyed.connect(self._destroyed)
+        self._been_destroyed = False
 
     def __getattr__(self, attr):
         """Makes the object behave like a vtkGenericRenderWindowInteractor"""
@@ -324,19 +325,17 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
             WId = pythonapi.PyCapsule_GetPointer(WId, name)
         return str(int(WId))
 
-    def _no_paint(self, ev):
-        pass
-
     def _destroyed(self):
         # ensure no paint events get called again
-        self.paintEvent = self._no_paint
         self.Finalize()
 
     def Finalize(self):
         '''
         Call internal cleanup method on VTK objects
         '''
-        self._RenderWindow.Finalize()
+        if not self._been_destroyed:
+            self._been_destroyed = True
+            self._RenderWindow.Finalize()
 
     def CreateTimer(self, obj, evt):
         self._Timer.start(10)
@@ -375,9 +374,13 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
         return None
 
     def paintEvent(self, ev):
+        if self._been_destroyed:
+            return
         self._RenderWindow.Render()
 
     def resizeEvent(self, ev):
+        if self._been_destroyed:
+            return
         if self._should_set_parent_info:
             # Set the window info and parent info on every resize.
             # vtkWin32OpenGLRenderWindow will render using incorrect offsets if
